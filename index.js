@@ -6,7 +6,10 @@ test2: fuga
 test3: piyo
 ---
 
+:innocent:
+
 \`\`\`ts
+// :innocent:
 import path from "path";
 import mkdirp from "mkdirp";
 import puppeteer from "puppeteer";

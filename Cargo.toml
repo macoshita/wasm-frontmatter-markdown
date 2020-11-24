@@ -31,6 +31,7 @@ serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.59"
 serde_yaml = "0.8.14"
 lazy_static = "1.4.0"
+gh-emoji = "1.0.3" 
 
 # rust-onig は wasm で使えないので、regex-fancy を使うように設定する
 # https://github.com/trishume/syntect/issues/135 の https://github.com/alexpeattie/syntect-wasm-demo より

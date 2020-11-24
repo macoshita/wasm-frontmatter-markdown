@@ -7,6 +7,7 @@ use syntect::{dumps::from_binary, highlighting::ThemeSet};
 lazy_static! {
     pub static ref SYNTAX_SET: SyntaxSet = from_binary(include_bytes!("./newlines.packdump"));
     pub static ref THEME_SET: ThemeSet = ThemeSet::load_defaults();
+    pub static ref EMOJI_REPLACER: gh_emoji::Replacer = gh_emoji::Replacer::new();
 }
 
 pub fn separate_frontmatter(text: &str) -> Result<(String, String), String> {
@@ -52,8 +53,13 @@ pub fn convert_html(markdown: &str) -> String {
                 }
             }
 
-            Event::Text(t) if in_code_block => {
-                code.push_str(&t);
+            Event::Text(t) => {
+                if in_code_block {
+                    code.push_str(&t);
+                } else {
+                    let s = EMOJI_REPLACER.replace_all(&t);
+                    parser.push(Event::Text(s.to_string().into()));
+                }
             }
 
             Event::End(Tag::CodeBlock(_)) if in_code_block => {
