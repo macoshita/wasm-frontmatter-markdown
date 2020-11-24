@@ -1,14 +1,13 @@
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 use syntect::{dumps::from_binary, highlighting::ThemeSet};
 
-lazy_static! {
-    pub static ref SYNTAX_SET: SyntaxSet = from_binary(include_bytes!("./newlines.packdump"));
-    pub static ref THEME_SET: ThemeSet = ThemeSet::load_defaults();
-    pub static ref EMOJI_REPLACER: gh_emoji::Replacer = gh_emoji::Replacer::new();
-}
+static SYNTAX_SET: Lazy<SyntaxSet> =
+    Lazy::new(|| from_binary(include_bytes!("./newlines.packdump")));
+static THEME_SET: Lazy<ThemeSet> = Lazy::new(|| ThemeSet::load_defaults());
+static EMOJI_REPLACER: Lazy<gh_emoji::Replacer> = Lazy::new(|| gh_emoji::Replacer::new());
 
 pub fn separate_frontmatter(text: &str) -> Result<(String, String), String> {
     if !text.starts_with("---\n") {
