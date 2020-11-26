@@ -56,3 +56,7 @@ Install nodejs and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) 
 ```
 wasm-pack publish -a public
 ```
+
+## ToDo
+
+- [ ] Automatically publish by GitHub Action
