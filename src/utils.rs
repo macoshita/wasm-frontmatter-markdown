@@ -1,12 +1,11 @@
 use once_cell::sync::Lazy;
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag};
-use syntect::html::highlighted_html_for_string;
+use syntect::dumps::from_binary;
+use syntect::html::{ClassStyle, ClassedHTMLGenerator};
 use syntect::parsing::SyntaxSet;
-use syntect::{dumps::from_binary, highlighting::ThemeSet};
 
 static SYNTAX_SET: Lazy<SyntaxSet> =
     Lazy::new(|| from_binary(include_bytes!("./newlines.packdump")));
-static THEME_SET: Lazy<ThemeSet> = Lazy::new(|| ThemeSet::load_defaults());
 static EMOJI_REPLACER: Lazy<gh_emoji::Replacer> = Lazy::new(|| gh_emoji::Replacer::new());
 
 pub fn separate_frontmatter(text: &str) -> Result<(String, String), String> {
@@ -31,8 +30,7 @@ pub fn yaml_to_json(text: &str) -> Result<serde_json::Value, String> {
 }
 
 pub fn convert_html(markdown: &str) -> String {
-    let theme = &THEME_SET.themes["base16-ocean.dark"];
-
+    let prefixed_style = ClassStyle::SpacedPrefixed { prefix: "hl-" };
     let mut in_code_block = false;
     let mut syntax = None;
     let mut code = String::new();
@@ -63,13 +61,18 @@ pub fn convert_html(markdown: &str) -> String {
 
             Event::End(Tag::CodeBlock(_)) if in_code_block => {
                 in_code_block = false;
-                let html = highlighted_html_for_string(
-                    &code,
-                    &SYNTAX_SET,
+                let mut html_generator = ClassedHTMLGenerator::new_with_class_style(
                     syntax.unwrap_or(SYNTAX_SET.find_syntax_plain_text()),
-                    theme,
+                    &SYNTAX_SET,
+                    prefixed_style,
                 );
-                parser.push(Event::Html(html.into()));
+                for line in code.lines() {
+                    html_generator.parse_html_for_line(&line);
+                }
+                let html = html_generator.finalize();
+                parser.push(Event::Html(
+                    format!("<pre class=\"hl-code\">{}</pre>", html).into(),
+                ));
                 code = String::new();
                 syntax = None;
             }
